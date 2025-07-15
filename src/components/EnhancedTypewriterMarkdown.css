@@ -1,0 +1,877 @@
+/* 继承基础样式 */
+.enhanced-typewriter-markdown {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  position: relative;
+}
+
+.enhanced-typewriter-markdown .markdown-content {
+  display: inline;
+}
+
+/* 光标样式 */
+.enhanced-typewriter-markdown .cursor {
+  color: #333;
+  font-weight: bold;
+  animation: blink 1s infinite;
+}
+
+.enhanced-typewriter-markdown .cursor-blink {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+/* Mermaid 图表样式 */
+.mermaid-container {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mermaid-block {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.mermaid-block svg {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.mermaid-error {
+  color: #e74c3c;
+  background: #fff5f5;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.mermaid-error .error-icon {
+  font-size: 1.2em;
+  margin-right: 8px;
+}
+
+.mermaid-error .error-text {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.mermaid-error .error-details {
+  margin-top: 10px;
+}
+
+.mermaid-error .error-details summary {
+  cursor: pointer;
+  color: #666;
+  font-size: 0.9em;
+  padding: 5px 0;
+}
+
+.mermaid-error .error-details pre {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  color: #555;
+  overflow-x: auto;
+  margin: 5px 0 0 0;
+}
+
+/* Mermaid 加载状态 */
+.mermaid-loading {
+  color: #3498db;
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 10px 0;
+  text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.mermaid-loading .loading-icon {
+  font-size: 1.5em;
+  margin-right: 10px;
+  animation: rotate 1s linear infinite;
+}
+
+.mermaid-loading .loading-text {
+  font-weight: 500;
+  color: #1976d2;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 渲染中状态 */
+.mermaid-block.rendering {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.mermaid-block.rendered {
+  opacity: 1;
+}
+
+/* 基础图片样式 */
+.enhanced-typewriter-markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 15px 0;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.3s ease;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.enhanced-typewriter-markdown img.loaded {
+  opacity: 1;
+}
+
+.enhanced-typewriter-markdown img.error {
+  opacity: 0.5;
+  border: 2px dashed #e74c3c;
+  background: #fff5f5;
+  padding: 20px;
+  text-align: center;
+  color: #e74c3c;
+}
+
+.enhanced-typewriter-markdown img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* 图片容器 */
+.image-container {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.image-caption {
+  font-style: italic;
+  color: #6c757d;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* 图片画廊样式 */
+.image-gallery {
+  position: relative;
+  margin: 30px 0;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.gallery-item {
+  display: none;
+  text-align: center;
+  animation: fadeInGallery 0.5s ease;
+}
+
+.gallery-item.active {
+  display: block;
+}
+
+.gallery-image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 8px;
+  cursor: zoom-in;
+  transition: transform 0.3s ease;
+  margin: 0 !important;
+  opacity: 1 !important;
+}
+
+.gallery-image:hover {
+  transform: scale(1.05);
+}
+
+.gallery-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 15px;
+}
+
+.gallery-btn {
+  background: #3498db;
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-btn:hover {
+  background: #2980b9;
+  transform: scale(1.1);
+}
+
+.gallery-indicators {
+  display: flex;
+  gap: 8px;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #bdc3c7;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: #3498db;
+  transform: scale(1.2);
+}
+
+.indicator:hover {
+  background: #34495e;
+}
+
+@keyframes fadeInGallery {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 图片网格样式 */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin: 30px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.grid-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.grid-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.grid-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  cursor: zoom-in;
+  transition: transform 0.3s ease;
+  margin: 0 !important;
+  opacity: 1 !important;
+}
+
+.grid-image:hover {
+  transform: scale(1.1);
+}
+
+/* 图片对比样式 */
+.image-compare {
+  margin: 30px 0;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.compare-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.5s ease;
+}
+
+.compare-container.swapped .compare-item:first-child {
+  order: 2;
+}
+
+.compare-container.swapped .compare-item:last-child {
+  order: 1;
+}
+
+.compare-item {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  transition: all 0.5s ease;
+}
+
+.compare-image {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 0 !important;
+  opacity: 1 !important;
+}
+
+.compare-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.compare-separator {
+  font-size: 24px;
+  font-weight: bold;
+  color: #e74c3c;
+  background: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.compare-toggle {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.compare-toggle:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+}
+
+/* 图片标注样式 */
+.image-annotated {
+  position: relative;
+  display: inline-block;
+  margin: 30px 0;
+}
+
+.annotated-image {
+  display: block;
+  margin: 0 !important;
+  opacity: 1 !important;
+}
+
+.annotation-point {
+  position: absolute;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.annotation-marker {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 30px;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s infinite;
+  transition: all 0.3s ease;
+}
+
+.annotation-marker:hover {
+  transform: scale(1.2);
+  background: #c0392b;
+}
+
+.annotation-tooltip {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 20;
+}
+
+.annotation-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+}
+
+.annotation-point:hover .annotation-tooltip {
+  opacity: 1;
+  visibility: visible;
+  bottom: 45px;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+  }
+}
+
+/* 可拖拽图片样式 */
+.image-draggable {
+  position: relative;
+  margin: 30px 0;
+  padding: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  min-height: 300px;
+  overflow: hidden;
+}
+
+.draggable-image {
+  position: relative;
+  cursor: move;
+  border: 3px solid white;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.3s ease;
+  margin: 0 !important;
+  opacity: 1 !important;
+  max-width: 200px;
+  z-index: 5;
+}
+
+.draggable-image:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.drag-instructions {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 图片模态框样式 */
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeInModal 0.3s ease;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  margin: 0 !important;
+  opacity: 1 !important;
+}
+
+.modal-close {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+.modal-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px 20px;
+  border-radius: 25px;
+}
+
+.modal-nav {
+  background: #3498db;
+  color: white;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-nav:hover {
+  background: #2980b9;
+  transform: scale(1.1);
+}
+
+.modal-counter {
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Markdown 基础样式增强 */
+.enhanced-typewriter-markdown .markdown-content h1 {
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
+  margin: 30px 0 20px 0;
+  position: relative;
+}
+
+.enhanced-typewriter-markdown .markdown-content h1::before {
+  content: "📚";
+  margin-right: 10px;
+}
+
+.enhanced-typewriter-markdown .markdown-content h2 {
+  color: #34495e;
+  border-bottom: 1px solid #bdc3c7;
+  padding-bottom: 5px;
+  margin: 25px 0 15px 0;
+  position: relative;
+}
+
+.enhanced-typewriter-markdown .markdown-content h2::before {
+  content: "📖";
+  margin-right: 8px;
+}
+
+.enhanced-typewriter-markdown .markdown-content h3 {
+  color: #34495e;
+  margin: 20px 0 10px 0;
+}
+
+.enhanced-typewriter-markdown .markdown-content h3::before {
+  content: "📝";
+  margin-right: 8px;
+}
+
+.enhanced-typewriter-markdown .markdown-content p {
+  margin: 10px 0;
+  color: #2c3e50;
+}
+
+.enhanced-typewriter-markdown .markdown-content code {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+  color: #e74c3c;
+  font-size: 0.9em;
+}
+
+.enhanced-typewriter-markdown .markdown-content pre {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  overflow-x: auto;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.enhanced-typewriter-markdown .markdown-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #2c3e50;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.enhanced-typewriter-markdown .markdown-content blockquote {
+  border-left: 4px solid #3498db;
+  margin: 20px 0;
+  padding: 15px 25px;
+  background: linear-gradient(90deg, #f8f9fa 0%, #ffffff 100%);
+  font-style: italic;
+  position: relative;
+}
+
+.enhanced-typewriter-markdown .markdown-content blockquote::before {
+  content: '"';
+  font-size: 4em;
+  color: #3498db;
+  position: absolute;
+  left: 10px;
+  top: -10px;
+  opacity: 0.3;
+}
+
+.enhanced-typewriter-markdown .markdown-content ul,
+.enhanced-typewriter-markdown .markdown-content ol {
+  margin: 15px 0;
+  padding-left: 30px;
+}
+
+.enhanced-typewriter-markdown .markdown-content li {
+  margin: 8px 0;
+  color: #2c3e50;
+  line-height: 1.6;
+}
+
+.enhanced-typewriter-markdown .markdown-content a {
+  color: #3498db;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.enhanced-typewriter-markdown .markdown-content a:hover {
+  border-bottom-color: #3498db;
+  background-color: rgba(52, 152, 219, 0.1);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.enhanced-typewriter-markdown .markdown-content strong {
+  font-weight: 600;
+  color: #2c3e50;
+  background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+  background-size: 100% 3px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+}
+
+.enhanced-typewriter-markdown .markdown-content em {
+  font-style: italic;
+  color: #34495e;
+}
+
+.enhanced-typewriter-markdown .markdown-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.enhanced-typewriter-markdown .markdown-content th,
+.enhanced-typewriter-markdown .markdown-content td {
+  border: 1px solid #ddd;
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.enhanced-typewriter-markdown .markdown-content th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9em;
+  letter-spacing: 0.5px;
+}
+
+.enhanced-typewriter-markdown .markdown-content tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.enhanced-typewriter-markdown .markdown-content tr:hover {
+  background-color: #e3f2fd;
+  transition: background-color 0.3s ease;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .mermaid-container {
+    padding: 15px;
+    margin: 15px 0;
+  }
+  
+  .enhanced-typewriter-markdown img {
+    margin: 10px 0;
+  }
+  
+  .enhanced-typewriter-markdown .markdown-content pre {
+    padding: 15px;
+    margin: 15px 0;
+  }
+  
+  .enhanced-typewriter-markdown .markdown-content blockquote {
+    padding: 10px 20px;
+    margin: 15px 0;
+  }
+  
+  .enhanced-typewriter-markdown .markdown-content table {
+    font-size: 14px;
+  }
+  
+  .enhanced-typewriter-markdown .markdown-content th,
+  .enhanced-typewriter-markdown .markdown-content td {
+    padding: 8px 12px;
+  }
+
+  /* 图片功能响应式 */
+  .image-gallery {
+    padding: 15px;
+    margin: 20px 0;
+  }
+
+  .gallery-image {
+    max-height: 300px;
+  }
+
+  .image-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    padding: 15px;
+  }
+
+  .grid-image {
+    height: 150px;
+  }
+
+  .compare-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .compare-separator {
+    transform: rotate(90deg);
+  }
+
+  .image-draggable {
+    padding: 20px;
+    min-height: 250px;
+  }
+
+  .modal-content {
+    max-width: 95%;
+    max-height: 95%;
+  }
+
+  .modal-close {
+    top: -35px;
+    right: -35px;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+} 
