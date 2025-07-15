@@ -141,131 +141,147 @@ const EnhancedTypewriterMarkdown: React.FC<EnhancedTypewriterMarkdownProps> = ({
     }
   }, [displayedContent, enableMermaid]);
 
+  // 预处理 Markdown 内容，处理自定义图片语法
+  const preprocessMarkdown = (markdownContent: string): string => {
+    if (!enableImages) return markdownContent;
+    
+    let processedContent = markdownContent;
+    
+    // 添加调试信息
+    console.log('预处理前的 Markdown 内容:', markdownContent);
+
+    // 处理图片画廊语法: ![gallery](url1|url2|url3)
+    processedContent = processedContent.replace(
+      /!\[gallery\]\(([^)]+)\)/g,
+      (match, urls) => {
+        console.log('匹配到画廊语法:', match, 'URLs:', urls);
+        const urlList = urls.split('|');
+        const galleryId = `gallery-${Math.random().toString(36).substr(2, 9)}`;
+        const result = `<div class="image-gallery" data-gallery-id="${galleryId}">
+          ${urlList.map((url: string, index: number) => `
+            <div class="gallery-item ${index === 0 ? 'active' : ''}" data-index="${index}">
+              <img src="${url.trim()}" alt="画廊图片 ${index + 1}" class="gallery-image" onclick="openImageModal('${url.trim()}', [${urlList.map((u: string) => `'${u.trim()}'`).join(',')}], ${index})">
+            </div>
+          `).join('')}
+          <div class="gallery-controls">
+            <button class="gallery-btn prev" onclick="changeGalleryImage('${galleryId}', -1)">‹</button>
+            <div class="gallery-indicators">
+              ${urlList.map((_: string, index: number) => `<span class="indicator ${index === 0 ? 'active' : ''}" data-index="${index}" onclick="setGalleryImage('${galleryId}', ${index})"></span>`).join('')}
+            </div>
+            <button class="gallery-btn next" onclick="changeGalleryImage('${galleryId}', 1)">›</button>
+          </div>
+        </div>`;
+        console.log('生成的画廊HTML:', result);
+        return result;
+      }
+    );
+
+    // 处理图片网格语法: ![grid](url1|url2|url3|url4)
+    processedContent = processedContent.replace(
+      /!\[grid\]\(([^)]+)\)/g,
+      (match, urls) => {
+        console.log('匹配到网格语法:', match, 'URLs:', urls);
+        const urlList = urls.split('|');
+        const result = `<div class="image-grid">
+          ${urlList.map((url: string) => `
+            <div class="grid-item">
+              <img src="${url.trim()}" alt="网格图片" class="grid-image" onclick="openImageModal('${url.trim()}')">
+            </div>
+          `).join('')}
+        </div>`;
+        console.log('生成的网格HTML:', result);
+        return result;
+      }
+    );
+
+    // 处理图片对比语法: ![compare](url1|url2)
+    processedContent = processedContent.replace(
+      /!\[compare\]\(([^)]+)\)/g,
+      (match, urls) => {
+        const urlList = urls.split('|');
+        if (urlList.length === 2) {
+          return `<div class="image-compare">
+            <div class="compare-container">
+              <div class="compare-item">
+                <img src="${urlList[0].trim()}" alt="对比图片 A" class="compare-image">
+                <div class="compare-label">Before</div>
+              </div>
+              <div class="compare-separator">VS</div>
+              <div class="compare-item">
+                <img src="${urlList[1].trim()}" alt="对比图片 B" class="compare-image">
+                <div class="compare-label">After</div>
+              </div>
+            </div>
+            <button class="compare-toggle" onclick="toggleCompareImages(this)">切换对比</button>
+          </div>`;
+        }
+        return match;
+      }
+    );
+
+    // 处理图片标注语法: ![annotated](url@x,y:标注文字)
+    processedContent = processedContent.replace(
+      /!\[annotated\]\(([^)]+)\)/g,
+      (match, content) => {
+        const [imageUrl, annotations] = content.split('@');
+        if (annotations) {
+          const annotationList = annotations.split(';').map((ann: string) => {
+            const [coords, text] = ann.split(':');
+            const [x, y] = coords.split(',').map((n: string) => parseInt(n.trim()));
+            return { x, y, text: text || '标注' };
+          });
+
+          return `<div class="image-annotated">
+            <img src="${imageUrl.trim()}" alt="标注图片" class="annotated-image">
+            ${annotationList.map((ann: any, index: number) => `
+              <div class="annotation-point" style="left: ${ann.x}%; top: ${ann.y}%;" data-tooltip="${ann.text}">
+                <span class="annotation-marker">${index + 1}</span>
+                <div class="annotation-tooltip">${ann.text}</div>
+              </div>
+            `).join('')}
+          </div>`;
+        }
+        return match;
+      }
+    );
+
+    // 处理可拖拽图片语法: ![draggable](url)
+    processedContent = processedContent.replace(
+      /!\[draggable\]\(([^)]+)\)/g,
+      (match, src) => {
+        return `<div class="image-draggable">
+          <img src="${src.trim()}" alt="可拖拽图片" class="draggable-image" draggable="true" ondragstart="handleImageDragStart(event)" style="transform: translate(0, 0);">
+          <div class="drag-instructions">💡 提示：可以拖拽移动此图片</div>
+        </div>`;
+      }
+    );
+
+    return processedContent;
+  };
+
   // 自定义渲染器：处理代码块中的 mermaid 语法
   const customRenderer = (htmlContent: string): string => {
-    if (!enableMermaid && !enableImages) return htmlContent;
+    if (!enableMermaid) return htmlContent;
 
     let processedContent = htmlContent;
 
     // 处理 Mermaid 代码块
-    if (enableMermaid) {
-      const mermaidRegex = /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g;
-      processedContent = processedContent.replace(mermaidRegex, (match, code) => {
-        const decodedCode = code
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&amp;/g, '&')
-          .replace(/&quot;/g, '"');
-        
-        return `<div class="mermaid-container">
-          <div class="mermaid-block">${decodedCode}</div>
-        </div>`;
-      });
-    }
+    const mermaidRegex = /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g;
+    processedContent = processedContent.replace(mermaidRegex, (match, code) => {
+      const decodedCode = code
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"');
+      
+      return `<div class="mermaid-container">
+        <div class="mermaid-block">${decodedCode}</div>
+      </div>`;
+    });
 
-    // 处理高级图片语法
-    if (enableImages) {
-      // 处理图片画廊语法: ![gallery](url1|url2|url3)
-      processedContent = processedContent.replace(
-        /<img src="([^"]*)" alt="gallery"([^>]*)>/g,
-        (match, src) => {
-          const urls = src.split('|');
-          const galleryId = `gallery-${Math.random().toString(36).substr(2, 9)}`;
-          return `<div class="image-gallery" data-gallery-id="${galleryId}">
-            ${urls.map((url: string, index: number) => `
-              <div class="gallery-item ${index === 0 ? 'active' : ''}" data-index="${index}">
-                <img src="${url.trim()}" alt="画廊图片 ${index + 1}" class="gallery-image" onclick="openImageModal('${url.trim()}', [${urls.map((u: string) => `'${u.trim()}'`).join(',')}], ${index})">
-              </div>
-            `).join('')}
-            <div class="gallery-controls">
-              <button class="gallery-btn prev" onclick="changeGalleryImage('${galleryId}', -1)">‹</button>
-              <div class="gallery-indicators">
-                ${urls.map((_: string, index: number) => `<span class="indicator ${index === 0 ? 'active' : ''}" data-index="${index}" onclick="setGalleryImage('${galleryId}', ${index})"></span>`).join('')}
-              </div>
-              <button class="gallery-btn next" onclick="changeGalleryImage('${galleryId}', 1)">›</button>
-            </div>
-          </div>`;
-        }
-      );
-
-      // 处理图片网格语法: ![grid](url1|url2|url3|url4)
-      processedContent = processedContent.replace(
-        /<img src="([^"]*)" alt="grid"([^>]*)>/g,
-        (match, src) => {
-          const urls = src.split('|');
-          return `<div class="image-grid">
-            ${urls.map((url: string) => `
-              <div class="grid-item">
-                <img src="${url.trim()}" alt="网格图片" class="grid-image" onclick="openImageModal('${url.trim()}')">
-              </div>
-            `).join('')}
-          </div>`;
-        }
-      );
-
-      // 处理图片对比语法: ![compare](url1|url2)
-      processedContent = processedContent.replace(
-        /<img src="([^"]*)" alt="compare"([^>]*)>/g,
-        (match, src) => {
-          const urls = src.split('|');
-          if (urls.length === 2) {
-            return `<div class="image-compare">
-              <div class="compare-container">
-                <div class="compare-item">
-                  <img src="${urls[0].trim()}" alt="对比图片 A" class="compare-image">
-                  <div class="compare-label">Before</div>
-                </div>
-                <div class="compare-separator">VS</div>
-                <div class="compare-item">
-                  <img src="${urls[1].trim()}" alt="对比图片 B" class="compare-image">
-                  <div class="compare-label">After</div>
-                </div>
-              </div>
-              <button class="compare-toggle" onclick="toggleCompareImages(this)">切换对比</button>
-            </div>`;
-          }
-          return match;
-        }
-      );
-
-      // 处理图片标注语法: ![annotated](url@x,y:标注文字)
-      processedContent = processedContent.replace(
-        /<img src="([^"]*)" alt="annotated"([^>]*)>/g,
-        (match, src) => {
-          const [imageUrl, annotations] = src.split('@');
-          if (annotations) {
-            const annotationList = annotations.split(';').map((ann: string) => {
-              const [coords, text] = ann.split(':');
-              const [x, y] = coords.split(',').map((n: string) => parseInt(n.trim()));
-              return { x, y, text: text || '标注' };
-            });
-
-            return `<div class="image-annotated">
-              <img src="${imageUrl.trim()}" alt="标注图片" class="annotated-image">
-              ${annotationList.map((ann: any, index: number) => `
-                <div class="annotation-point" style="left: ${ann.x}%; top: ${ann.y}%;" data-tooltip="${ann.text}">
-                  <span class="annotation-marker">${index + 1}</span>
-                  <div class="annotation-tooltip">${ann.text}</div>
-                </div>
-              `).join('')}
-            </div>`;
-          }
-          return match;
-        }
-      );
-
-      // 处理可拖拽图片语法: ![draggable](url)
-      processedContent = processedContent.replace(
-        /<img src="([^"]*)" alt="draggable"([^>]*)>/g,
-        (match, src) => {
-          return `<div class="image-draggable">
-            <img src="${src}" alt="可拖拽图片" class="draggable-image" draggable="true" ondragstart="handleImageDragStart(event)" style="transform: translate(0, 0);">
-            <div class="drag-instructions">💡 提示：可以拖拽移动此图片</div>
-          </div>`;
-        }
-      );
-    }
-
+    // 添加调试信息
+    console.log('预处理后的内容:', processedContent);
+    
     return processedContent;
   };
 
@@ -404,10 +420,13 @@ const EnhancedTypewriterMarkdown: React.FC<EnhancedTypewriterMarkdownProps> = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [modalImage, galleryImages, galleryIndex]);
 
-  // 将当前显示的内容转换为 HTML
-  let htmlContent = md.render(displayedContent);
+  // 预处理 Markdown 内容，处理自定义图片语法
+  const preprocessedContent = preprocessMarkdown(displayedContent);
   
-  // 应用自定义渲染器
+  // 将预处理后的内容转换为 HTML
+  let htmlContent = md.render(preprocessedContent);
+  
+  // 应用自定义渲染器处理 Mermaid
   htmlContent = customRenderer(htmlContent);
 
   return (
