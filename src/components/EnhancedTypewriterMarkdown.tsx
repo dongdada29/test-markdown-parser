@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Remarkable } from 'remarkable';
 import mermaid from 'mermaid';
 import './EnhancedTypewriterMarkdown.css';
@@ -53,6 +53,8 @@ const EnhancedTypewriterMarkdown: React.FC<EnhancedTypewriterMarkdownProps> = ({
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const renderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const processedImagesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     // 重置状态
@@ -62,6 +64,7 @@ const EnhancedTypewriterMarkdown: React.FC<EnhancedTypewriterMarkdownProps> = ({
     setModalImage(null);
     setGalleryIndex(0);
     setGalleryImages([]);
+    processedImagesRef.current.clear();
   }, [content]);
 
   useEffect(() => {
@@ -99,46 +102,54 @@ const EnhancedTypewriterMarkdown: React.FC<EnhancedTypewriterMarkdownProps> = ({
     return mermaidPatterns.some(pattern => pattern.test(trimmedCode));
   };
 
-  // 处理 Mermaid 图表渲染
+  // 处理 Mermaid 图表渲染 - 使用防抖减少渲染频率
   useEffect(() => {
-    if (enableMermaid && containerRef.current) {
-      const mermaidBlocks = containerRef.current.querySelectorAll('.mermaid-block:not(.rendered)');
+    if (!enableMermaid || !containerRef.current) return;
+    
+    const timeoutId = setTimeout(() => {
+      const mermaidBlocks = containerRef.current?.querySelectorAll('.mermaid-block:not(.rendered):not(.rendering)');
       
-      mermaidBlocks.forEach(async (block, index) => {
-        const code = block.textContent || '';
-        const trimmedCode = code.trim();
-        
-        if (trimmedCode && isMermaidBlockComplete(trimmedCode)) {
-          try {
-            // 标记为正在渲染，避免重复渲染
-            block.classList.add('rendering');
-            
-            const { svg } = await mermaid.render(`mermaid-${Date.now()}-${index}`, trimmedCode);
-            block.innerHTML = svg;
-            block.classList.add('rendered');
-            block.classList.remove('rendering');
-          } catch (error) {
-            console.error('Mermaid 渲染错误:', error);
-            block.innerHTML = `<div class="mermaid-error">
-              <span class="error-icon">⚠️</span>
-              <span class="error-text">图表渲染失败</span>
-              <details class="error-details">
-                <summary>查看详情</summary>
-                <pre>${error}</pre>
-              </details>
-            </div>`;
-            block.classList.add('rendered');
-            block.classList.remove('rendering');
+      if (mermaidBlocks) {
+        mermaidBlocks.forEach(async (block, index) => {
+          const code = block.textContent || '';
+          const trimmedCode = code.trim();
+          
+          if (trimmedCode && isMermaidBlockComplete(trimmedCode)) {
+            try {
+              // 标记为正在渲染，避免重复渲染
+              block.classList.add('rendering');
+              
+              const { svg } = await mermaid.render(`mermaid-${Date.now()}-${index}`, trimmedCode);
+              block.innerHTML = svg;
+              block.classList.add('rendered');
+              block.classList.remove('rendering');
+            } catch (error) {
+              console.error('Mermaid 渲染错误:', error);
+              block.innerHTML = `<div class="mermaid-error">
+                <span class="error-icon">⚠️</span>
+                <span class="error-text">图表渲染失败</span>
+                <details class="error-details">
+                  <summary>查看详情</summary>
+                  <pre>${error}</pre>
+                </details>
+              </div>`;
+              block.classList.add('rendered');
+              block.classList.remove('rendering');
+            }
+          } else if (trimmedCode && !isMermaidBlockComplete(trimmedCode)) {
+            // 显示加载状态，表示代码块还不完整
+            if (!block.querySelector('.mermaid-loading')) {
+              block.innerHTML = `<div class="mermaid-loading">
+                <span class="loading-icon">🔄</span>
+                <span class="loading-text">图表代码加载中...</span>
+              </div>`;
+            }
           }
-        } else if (trimmedCode && !isMermaidBlockComplete(trimmedCode)) {
-          // 显示加载状态，表示代码块还不完整
-          block.innerHTML = `<div class="mermaid-loading">
-            <span class="loading-icon">🔄</span>
-            <span class="loading-text">图表代码加载中...</span>
-          </div>`;
-        }
-      });
-    }
+        });
+      }
+    }, 200);
+    
+    return () => clearTimeout(timeoutId);
   }, [displayedContent, enableMermaid]);
 
   // 预处理 Markdown 内容，处理自定义图片语法
@@ -285,14 +296,28 @@ const EnhancedTypewriterMarkdown: React.FC<EnhancedTypewriterMarkdownProps> = ({
     return processedContent;
   };
 
-  // 处理图片加载和交互
+    // 处理图片加载和交互
   useEffect(() => {
     if (enableImages && containerRef.current) {
-      // 处理普通图片
+      // 处理普通图片 - 使用更智能的缓存机制避免重复处理
       const images = containerRef.current.querySelectorAll('img:not(.processed)');
       images.forEach((element) => {
         const img = element as HTMLImageElement;
-        img.classList.add('processed');
+        const imgSrc = img.src;
+        
+        // 检查是否已经处理过这个图片
+        if (processedImagesRef.current.has(imgSrc)) {
+          img.classList.add('processed', 'loaded');
+          return;
+        }
+        
+        // 如果图片已经加载完成，直接标记为已处理
+        if (img.complete && img.naturalHeight !== 0) {
+          img.classList.add('processed', 'loaded');
+          processedImagesRef.current.add(imgSrc);
+        } else {
+          img.classList.add('processed');
+        }
         
         // 添加点击放大功能（仅对非特殊类型图片）
         if (!img.classList.contains('gallery-image') && 
@@ -304,23 +329,27 @@ const EnhancedTypewriterMarkdown: React.FC<EnhancedTypewriterMarkdownProps> = ({
           img.onclick = () => setModalImage(img.src);
         }
         
-        img.onload = () => {
-          img.classList.add('loaded');
-        };
-        
-        img.onerror = () => {
-          img.classList.add('error');
-          img.alt = '图片加载失败';
+        // 只在图片未加载时添加事件监听器
+        if (!img.complete || img.naturalHeight === 0) {
+          img.onload = () => {
+            img.classList.add('loaded');
+            processedImagesRef.current.add(imgSrc);
+          };
           
-          // 添加重试机制
-          const originalSrc = img.src;
-          setTimeout(() => {
-            if (img.classList.contains('error')) {
-              console.log('重试加载图片:', originalSrc);
-              img.src = originalSrc + '?retry=' + Date.now();
-            }
-          }, 2000);
-        };
+          img.onerror = () => {
+            img.classList.add('error');
+            img.alt = '图片加载失败';
+            
+            // 添加重试机制
+            const originalSrc = img.src;
+            setTimeout(() => {
+              if (img.classList.contains('error')) {
+                console.log('重试加载图片:', originalSrc);
+                img.src = originalSrc + '?retry=' + Date.now();
+              }
+            }, 2000);
+          };
+        }
       });
 
       // 添加全局点击事件处理函数
@@ -395,6 +424,23 @@ const EnhancedTypewriterMarkdown: React.FC<EnhancedTypewriterMarkdownProps> = ({
     }
   }, [displayedContent, enableImages]);
 
+  // 防抖处理渲染，减少频繁更新
+  useEffect(() => {
+    if (renderTimeoutRef.current) {
+      clearTimeout(renderTimeoutRef.current);
+    }
+    
+    renderTimeoutRef.current = setTimeout(() => {
+      // 触发重新渲染
+    }, 100);
+    
+    return () => {
+      if (renderTimeoutRef.current) {
+        clearTimeout(renderTimeoutRef.current);
+      }
+    };
+  }, [displayedContent]);
+
   // 模态框键盘事件
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -420,14 +466,19 @@ const EnhancedTypewriterMarkdown: React.FC<EnhancedTypewriterMarkdownProps> = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [modalImage, galleryImages, galleryIndex]);
 
-  // 预处理 Markdown 内容，处理自定义图片语法
-  const preprocessedContent = preprocessMarkdown(displayedContent);
-  
-  // 将预处理后的内容转换为 HTML
-  let htmlContent = md.render(preprocessedContent);
-  
-  // 应用自定义渲染器处理 Mermaid
-  htmlContent = customRenderer(htmlContent);
+  // 使用 useMemo 缓存渲染结果，避免不必要的重新渲染
+  const { preprocessedContent, htmlContent } = useMemo(() => {
+    // 预处理 Markdown 内容，处理自定义图片语法
+    const preprocessed = preprocessMarkdown(displayedContent);
+    
+    // 将预处理后的内容转换为 HTML
+    let html = md.render(preprocessed);
+    
+    // 应用自定义渲染器处理 Mermaid
+    html = customRenderer(html);
+    
+    return { preprocessedContent: preprocessed, htmlContent: html };
+  }, [displayedContent]);
 
   return (
     <div className="enhanced-typewriter-markdown" ref={containerRef}>

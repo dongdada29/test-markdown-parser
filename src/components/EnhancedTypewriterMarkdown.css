@@ -143,14 +143,24 @@
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin: 15px 0;
-  opacity: 0;
-  transition: opacity 0.5s ease, transform 0.3s ease;
+  opacity: 1;
+  transition: transform 0.3s ease;
   display: block;
   margin-left: auto;
   margin-right: auto;
+  /* 防止图片闪动和优化渲染 */
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  /* 图片预加载优化 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  /* 防止布局抖动 */
+  contain: layout style paint;
 }
 
 .enhanced-typewriter-markdown img.loaded {
+  /* 保持透明度为1，避免闪动 */
   opacity: 1;
 }
 
